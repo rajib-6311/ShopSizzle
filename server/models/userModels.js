@@ -7,7 +7,7 @@ const userSchema = new Schema({
     avatar:{type: String},
     userCart:{type: Object, default: {}}
 },
-{minimize: false}
+{minimize: false}  
 );
 
 const userModel = mongoose.models.user || mongoose.model('user', userSchema)
