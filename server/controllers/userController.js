@@ -111,7 +111,7 @@ const userLogin = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        
+
         if (isMatch) {
             const token = createToken(user)
             res.json({
@@ -134,11 +134,120 @@ const userLogin = async (req, res) => {
         res.json({ success: true, message: error?.error })
     }
 }
-const adminLogin = async (req, res) => { }
-const removeUser = async (req, res) => { }
-const updateUser = async (req, res) => { }
+const adminLogin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email) {
+            return res.json({
+                success: false,
+                message: 'Email is required'
+            })
+        }
+        if (!password) {
+            return res.json({
+                success: false,
+                message: 'Password is required'
+            })
+        }
+
+        if (
+            email === process.env.ADMIN_EMAIL &&
+            password === process.env.ADMIN_PASSWORD
+        ) {
+            const token = jwt.sign(email + password, process.env.JWT_SECRET)
+            res.json({
+                success: true,
+                token,
+                message: 'Welcome admin login user'
+            })
+        }
+        else {
+            res.json({ success: true, message: 'Invalid credential' })
+        }
+
+
+    } catch (error) {
+        console.log('Admin login ERROR', error)
+        res.json({ success: true, message: error?.error })
+    }
+}
+
+const removeUser = async (req, res) => {
+    try {
+        await userModel.findByIdAndDelete(req.body._id);
+        res.json({
+            success: true,
+            message: 'User Deleted Successfully'
+        })
+
+    } catch (error) {
+        console.log('Admin login ERROR', error)
+        res.json({ success: true, message: error?.error })
+    }
+}
+const updateUser = async (req, res) => {
+    try {
+        const { _id, email, password, name } = req.body;
+        const user = await userModel.findById(_id);
+
+        if (!user) {
+            return res.json({
+                success: false,
+                message: 'User not found'
+            })
+        }
+        //name
+        if (name) user.name = name;
+        //email
+        if (email) {
+            if (!validator.isEmail(email)) {
+                return res.send({
+                    success: false,
+                    message: 'Enter a valid email'
+                })
+            }
+            user.email = email;
+        }
+        //password
+        if (password) {
+            if (password.length < 8) {
+                return res.json({
+                    success: true,
+                    message: 'Give password more than 8 charter'
+                })
+            }
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(password, salt)
+        }
+        //Updating the user
+        await user.save();
+        res.json({
+            success: true,
+            message: 'User updated successfully'
+        })
+
+
+    } catch (error) {
+        console.log('Update user ERROR', error)
+        res.json({ success: true, message: error?.error })
+    }
+}
 const getUser = async (req, res) => {
-    res.send('find user')
+    try {
+        const total = await userModel.countDocuments({});
+        const users = await userModel.find({});
+
+        res.json({
+            success: true,
+            total,
+            users
+        })
+
+    } catch (error) {
+        console.log('All users get ERROR', error)
+        res.json({ success: true, message: error?.error })
+    }
 }
 
 export {
