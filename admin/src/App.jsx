@@ -3,11 +3,12 @@ import Home from './Pages/Home';
 import Dashboard from './Pages/Dashboard';
 import Add from './Pages/Add';
 import List from './Pages/List';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from './Components/Navbar';
 import SideBar from './Components/SideBar';
 import Orders from './Pages/Orders';
 import Users from './Pages/Users';
+import Login from './Pages/Login';
 
 
 function App() {
@@ -15,10 +16,17 @@ function App() {
     localStorage.getItem('token') ? localStorage.getItem('token') : " "
   )
 
+  useEffect(()=>{
+    localStorage.getItem('token', token)
+  },[token])
+
   return (
     <main className='bg-gray-50 w-full min-h-screen'>
+     {
+      token === " " ?
+       (<Login setToken={setToken}/>) : 
+     (  <>
       <Navbar token={token} setToken={setToken} />
-
       <div className='flex w-full'>
         <div className='w-[18%] fixed min-h-screen border-r-2'>
           <SideBar />
@@ -35,6 +43,8 @@ function App() {
         <Route path="/users" element={<Users />} />
       </Routes>
       </div>
+     </>)
+     }
     </main>
   );
 }
